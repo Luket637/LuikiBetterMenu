@@ -4,7 +4,9 @@ using UnityEngine.XR;
 public class LuikiBetterMenu : MonoBehaviour
 {
     private bool menuOpen = false;
-    private int page = 0;
+
+    private MenuPage[] pages;
+    private int currentPage = 0;
 
     private Rect windowRect = new Rect(100, 100, 500, 600);
 
@@ -13,21 +15,54 @@ public class LuikiBetterMenu : MonoBehaviour
 
     private void Start()
     {
+        // Create pages
+        pages = new MenuPage[]
+        {
+            new MenuPage(
+                "Movement",
+                "Platforms",
+                "Invisible",
+                "Ghost Monkey",
+                "Invisible Monkey",
+                "Long Arms"
+            ),
+
+            new MenuPage(
+                "Overpowered",
+                "Kick Gun",
+                "Kick All",
+                "Crash Gun",
+                "Crash All",
+                "Ban Gun",
+                "Reverse Card"
+            ),
+
+            new MenuPage(
+                "Safety",
+                "Anti-Kick",
+                "Anti-Ban",
+                "Accept ToS"
+            )
+        };
+
+        // Title style
         titleStyle = new GUIStyle(GUI.skin.label);
         titleStyle.fontSize = 28;
         titleStyle.alignment = TextAnchor.MiddleCenter;
         titleStyle.normal.textColor = Color.white;
 
+        // Button style
         buttonStyle = new GUIStyle(GUI.skin.button);
         buttonStyle.fontSize = 18;
+        buttonStyle.normal.textColor = Color.white;
     }
 
     private void Update()
     {
-        InputDevice rightController =
-            InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
+        InputDevice leftController =
+            InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
 
-        if (rightController.TryGetFeatureValue(
+        if (leftController.TryGetFeatureValue(
             CommonUsages.primaryButton,
             out bool yPressed))
         {
@@ -53,6 +88,7 @@ public class LuikiBetterMenu : MonoBehaviour
 
     private void DrawMenu(int windowID)
     {
+        // Cyan menu
         GUI.backgroundColor = Color.cyan;
 
         GUILayout.BeginVertical();
@@ -69,62 +105,67 @@ public class LuikiBetterMenu : MonoBehaviour
             titleStyle
         );
 
+        GUILayout.Space(10);
+
+        // Page navigation
+        GUILayout.BeginHorizontal();
+
+        if (GUILayout.Button("<", buttonStyle))
+        {
+            currentPage--;
+
+            if (currentPage < 0)
+                currentPage = pages.Length - 1;
+        }
+
+        GUILayout.Label(
+            pages[currentPage].Name,
+            titleStyle
+        );
+
+        if (GUILayout.Button(">", buttonStyle))
+        {
+            currentPage++;
+
+            if (currentPage >= pages.Length)
+                currentPage = 0;
+        }
+
+        GUILayout.EndHorizontal();
+
         GUILayout.Space(15);
 
-        if (GUILayout.Button("Movement", buttonStyle))
-            page = 0;
+        // Current page
+        DrawCurrentPage();
 
-        if (GUILayout.Button("Overpowered", buttonStyle))
-            page = 1;
+        GUILayout.Space(15);
 
-        if (GUILayout.Button("Safety", buttonStyle))
-            page = 2;
-
-        GUILayout.Space(20);
-
-        DrawPage();
-
-        GUILayout.Space(20);
-
+        // Exit
         if (GUILayout.Button("EXIT", buttonStyle))
+        {
             menuOpen = false;
+        }
 
         GUILayout.EndVertical();
 
         GUI.DragWindow();
     }
 
-    private void DrawPage()
+    private void DrawCurrentPage()
     {
-        if (page == 0)
+        MenuPage page = pages[currentPage];
+
+        foreach (string mod in page.Mods)
         {
-            GUILayout.Label("MOVEMENT", titleStyle);
-
-            GUILayout.Button("Platforms", buttonStyle);
-            GUILayout.Button("Invisible", buttonStyle);
-            GUILayout.Button("Ghost Monkey", buttonStyle);
-            GUILayout.Button("Invisible Monkey", buttonStyle);
-            GUILayout.Button("Long Arms", buttonStyle);
-        }
-
-        else if (page == 1)
-        {
-            GUILayout.Label("OVERPOWERED", titleStyle);
-
-            GUILayout.Button("Kick Gun", buttonStyle);
-            GUILayout.Button("Kick All", buttonStyle);
-            GUILayout.Button("Crash Gun", buttonStyle);
-            GUILayout.Button("Crash All", buttonStyle);
-            GUILayout.Button("Ban Gun", buttonStyle);
-            GUILayout.Button("Reverse Card", buttonStyle);
-        }
-
-        else if (page == 2)
-        {
-            GUILayout.Label("SAFETY", titleStyle);
-
-            GUILayout.Button("Anti-Kick", buttonStyle);
-            GUILayout.Button("Anti-Ban", buttonStyle);
-            GUILayout.Button("Accept ToS", buttonStyle);
+            if (GUILayout.Button(mod, buttonStyle))
+            {
+                HandleMod(mod);
+            }
         }
     }
+
+    private void HandleMod(string mod)
+    {
+        Debug.Log("Luiki Better: " + mod + " selected.");
+    }
+}
