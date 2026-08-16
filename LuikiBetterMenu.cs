@@ -12,10 +12,14 @@ public class LuikiBetterMenu : MonoBehaviour
 
     private GUIStyle titleStyle;
     private GUIStyle buttonStyle;
+    private GUIStyle pageStyle;
+
+    // Movement toggles
+    private bool platforms = false;
+    private bool longArms = false;
 
     private void Start()
     {
-        // Create pages
         pages = new MenuPage[]
         {
             new MenuPage(
@@ -45,16 +49,25 @@ public class LuikiBetterMenu : MonoBehaviour
             )
         };
 
-        // Title style
+        // Title
         titleStyle = new GUIStyle(GUI.skin.label);
         titleStyle.fontSize = 28;
         titleStyle.alignment = TextAnchor.MiddleCenter;
         titleStyle.normal.textColor = Color.white;
+        titleStyle.fontStyle = FontStyle.Bold;
 
-        // Button style
+        // Buttons
         buttonStyle = new GUIStyle(GUI.skin.button);
         buttonStyle.fontSize = 18;
         buttonStyle.normal.textColor = Color.white;
+        buttonStyle.fontStyle = FontStyle.Bold;
+
+        // Page title
+        pageStyle = new GUIStyle(GUI.skin.label);
+        pageStyle.fontSize = 22;
+        pageStyle.alignment = TextAnchor.MiddleCenter;
+        pageStyle.normal.textColor = Color.cyan;
+        pageStyle.fontStyle = FontStyle.Bold;
     }
 
     private void Update()
@@ -71,6 +84,26 @@ public class LuikiBetterMenu : MonoBehaviour
                 menuOpen = !menuOpen;
             }
         }
+
+        if (longArms)
+        {
+            ApplyLongArms();
+        }
+
+        if (platforms)
+        {
+            ApplyPlatforms();
+        }
+    }
+
+    private void ApplyLongArms()
+    {
+        // Reserved for the actual Gorilla Tag player implementation.
+    }
+
+    private void ApplyPlatforms()
+    {
+        // Reserved for the actual Gorilla Tag VR platform implementation.
     }
 
     private void OnGUI()
@@ -88,12 +121,12 @@ public class LuikiBetterMenu : MonoBehaviour
 
     private void DrawMenu(int windowID)
     {
-        // Cyan menu
+        // Cyan theme
         GUI.backgroundColor = Color.cyan;
 
         GUILayout.BeginVertical();
 
-        GUILayout.Space(10);
+        GUILayout.Space(15);
 
         GUILayout.Label(
             "LUIKI BETTER",
@@ -102,15 +135,15 @@ public class LuikiBetterMenu : MonoBehaviour
 
         GUILayout.Label(
             "V1.0",
-            titleStyle
+            pageStyle
         );
 
-        GUILayout.Space(10);
+        GUILayout.Space(15);
 
         // Page navigation
         GUILayout.BeginHorizontal();
 
-        if (GUILayout.Button("<", buttonStyle))
+        if (GUILayout.Button("<", buttonStyle, GUILayout.Width(60)))
         {
             currentPage--;
 
@@ -119,11 +152,11 @@ public class LuikiBetterMenu : MonoBehaviour
         }
 
         GUILayout.Label(
-            pages[currentPage].Name,
-            titleStyle
+            pages[currentPage].Name.ToUpper(),
+            pageStyle
         );
 
-        if (GUILayout.Button(">", buttonStyle))
+        if (GUILayout.Button(">", buttonStyle, GUILayout.Width(60)))
         {
             currentPage++;
 
@@ -135,16 +168,16 @@ public class LuikiBetterMenu : MonoBehaviour
 
         GUILayout.Space(15);
 
-        // Current page
         DrawCurrentPage();
 
-        GUILayout.Space(15);
+        GUILayout.Space(20);
 
-        // Exit
         if (GUILayout.Button("EXIT", buttonStyle))
         {
             menuOpen = false;
         }
+
+        GUILayout.Space(10);
 
         GUILayout.EndVertical();
 
@@ -157,15 +190,61 @@ public class LuikiBetterMenu : MonoBehaviour
 
         foreach (string mod in page.Mods)
         {
-            if (GUILayout.Button(mod, buttonStyle))
+            string buttonText = mod;
+
+            if (mod == "Platforms")
+            {
+                buttonText = platforms
+                    ? "Platforms: ON"
+                    : "Platforms: OFF";
+            }
+
+            if (mod == "Long Arms")
+            {
+                buttonText = longArms
+                    ? "Long Arms: ON"
+                    : "Long Arms: OFF";
+            }
+
+            if (GUILayout.Button(buttonText, buttonStyle))
             {
                 HandleMod(mod);
             }
+
+            GUILayout.Space(5);
         }
     }
 
     private void HandleMod(string mod)
     {
-        Debug.Log("Luiki Better: " + mod + " selected.");
+        if (mod == "Platforms")
+        {
+            platforms = !platforms;
+
+            Debug.Log(
+                "Luiki Better: Platforms " +
+                (platforms ? "enabled." : "disabled.")
+            );
+
+            return;
+        }
+
+        if (mod == "Long Arms")
+        {
+            longArms = !longArms;
+
+            Debug.Log(
+                "Luiki Better: Long Arms " +
+                (longArms ? "enabled." : "disabled.")
+            );
+
+            return;
+        }
+
+        Debug.Log(
+            "Luiki Better: " +
+            mod +
+            " selected."
+        );
     }
 }
