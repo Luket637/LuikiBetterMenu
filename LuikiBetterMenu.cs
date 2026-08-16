@@ -14,9 +14,18 @@ public class LuikiBetterMenu : MonoBehaviour
     private GUIStyle buttonStyle;
     private GUIStyle pageStyle;
 
-    // Movement toggles
+    // Movement
     private bool platforms = false;
-    private bool longArms = false;
+    private bool ghostMonkey = false;
+    private bool invisibleMonkey = false;
+
+    // Safety
+    private bool antiKick = false;
+
+    // Button states
+    private bool previousYPressed = false;
+    private bool previousAPressed = false;
+    private bool previousBPressed = false;
 
     private void Start()
     {
@@ -25,7 +34,6 @@ public class LuikiBetterMenu : MonoBehaviour
             new MenuPage(
                 "Movement",
                 "Platforms",
-                "Invisible",
                 "Ghost Monkey",
                 "Invisible Monkey",
                 "Long Arms"
@@ -49,20 +57,17 @@ public class LuikiBetterMenu : MonoBehaviour
             )
         };
 
-        // Title
         titleStyle = new GUIStyle(GUI.skin.label);
         titleStyle.fontSize = 28;
         titleStyle.alignment = TextAnchor.MiddleCenter;
         titleStyle.normal.textColor = Color.white;
         titleStyle.fontStyle = FontStyle.Bold;
 
-        // Buttons
         buttonStyle = new GUIStyle(GUI.skin.button);
         buttonStyle.fontSize = 18;
         buttonStyle.normal.textColor = Color.white;
         buttonStyle.fontStyle = FontStyle.Bold;
 
-        // Page title
         pageStyle = new GUIStyle(GUI.skin.label);
         pageStyle.fontSize = 22;
         pageStyle.alignment = TextAnchor.MiddleCenter;
@@ -72,6 +77,7 @@ public class LuikiBetterMenu : MonoBehaviour
 
     private void Update()
     {
+        // Y = Open / Close Menu
         InputDevice leftController =
             InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
 
@@ -79,31 +85,90 @@ public class LuikiBetterMenu : MonoBehaviour
             CommonUsages.primaryButton,
             out bool yPressed))
         {
-            if (yPressed)
+            if (yPressed && !previousYPressed)
             {
                 menuOpen = !menuOpen;
             }
+
+            previousYPressed = yPressed;
         }
 
-        if (longArms)
+        // Right controller
+        InputDevice rightController =
+            InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
+
+        // A = Ghost Monkey
+        if (rightController.TryGetFeatureValue(
+            CommonUsages.primaryButton,
+            out bool aPressed))
         {
-            ApplyLongArms();
+            if (aPressed && !previousAPressed)
+            {
+                ghostMonkey = !ghostMonkey;
+
+                Debug.Log(
+                    "Luiki Better: Ghost Monkey " +
+                    (ghostMonkey ? "enabled." : "disabled.")
+                );
+            }
+
+            previousAPressed = aPressed;
         }
 
+        // B = Invisible Monkey
+        if (rightController.TryGetFeatureValue(
+            CommonUsages.secondaryButton,
+            out bool bPressed))
+        {
+            if (bPressed && !previousBPressed)
+            {
+                invisibleMonkey = !invisibleMonkey;
+
+                Debug.Log(
+                    "Luiki Better: Invisible Monkey " +
+                    (invisibleMonkey ? "enabled." : "disabled.")
+                );
+            }
+
+            previousBPressed = bPressed;
+        }
+
+        // Movement hooks
         if (platforms)
         {
             ApplyPlatforms();
         }
-    }
 
-    private void ApplyLongArms()
-    {
-        // Reserved for the actual Gorilla Tag player implementation.
+        if (ghostMonkey)
+        {
+            ApplyGhostMonkey();
+        }
+
+        if (invisibleMonkey)
+        {
+            ApplyInvisibleMonkey();
+        }
     }
 
     private void ApplyPlatforms()
     {
-        // Reserved for the actual Gorilla Tag VR platform implementation.
+        // Platform implementation will be added here.
+    }
+
+    private void ApplyGhostMonkey()
+    {
+        // Ghost Monkey implementation will be added here.
+    }
+
+    private void ApplyInvisibleMonkey()
+    {
+        // Invisible Monkey implementation will be added here.
+    }
+
+    // Long Arms is an instant action.
+    private void ActivateLongArms()
+    {
+        Debug.Log("Luiki Better: Long Arms activated!");
     }
 
     private void OnGUI()
@@ -121,7 +186,6 @@ public class LuikiBetterMenu : MonoBehaviour
 
     private void DrawMenu(int windowID)
     {
-        // Cyan theme
         GUI.backgroundColor = Color.cyan;
 
         GUILayout.BeginVertical();
@@ -199,12 +263,28 @@ public class LuikiBetterMenu : MonoBehaviour
                     : "Platforms: OFF";
             }
 
-            if (mod == "Long Arms")
+            if (mod == "Ghost Monkey")
             {
-                buttonText = longArms
-                    ? "Long Arms: ON"
-                    : "Long Arms: OFF";
+                buttonText = ghostMonkey
+                    ? "Ghost Monkey: ON"
+                    : "Ghost Monkey: OFF";
             }
+
+            if (mod == "Invisible Monkey")
+            {
+                buttonText = invisibleMonkey
+                    ? "Invisible Monkey: ON"
+                    : "Invisible Monkey: OFF";
+            }
+
+            if (mod == "Anti-Kick")
+            {
+                buttonText = antiKick
+                    ? "Anti-Kick: ON"
+                    : "Anti-Kick: OFF";
+            }
+
+            // Long Arms intentionally has no ON/OFF state.
 
             if (GUILayout.Button(buttonText, buttonStyle))
             {
@@ -229,13 +309,43 @@ public class LuikiBetterMenu : MonoBehaviour
             return;
         }
 
-        if (mod == "Long Arms")
+        if (mod == "Ghost Monkey")
         {
-            longArms = !longArms;
+            ghostMonkey = !ghostMonkey;
 
             Debug.Log(
-                "Luiki Better: Long Arms " +
-                (longArms ? "enabled." : "disabled.")
+                "Luiki Better: Ghost Monkey " +
+                (ghostMonkey ? "enabled." : "disabled.")
+            );
+
+            return;
+        }
+
+        if (mod == "Invisible Monkey")
+        {
+            invisibleMonkey = !invisibleMonkey;
+
+            Debug.Log(
+                "Luiki Better: Invisible Monkey " +
+                (invisibleMonkey ? "enabled." : "disabled.")
+            );
+
+            return;
+        }
+
+        if (mod == "Long Arms")
+        {
+            ActivateLongArms();
+            return;
+        }
+
+        if (mod == "Anti-Kick")
+        {
+            antiKick = !antiKick;
+
+            Debug.Log(
+                "Luiki Better: Anti-Kick " +
+                (antiKick ? "enabled." : "disabled.")
             );
 
             return;
