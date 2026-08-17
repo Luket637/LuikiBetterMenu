@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.XR;
 using LuikiBetter.Mods;
+using LuikiBetter.GUI;
 
 namespace LuikiBetter
 {
@@ -12,32 +13,22 @@ namespace LuikiBetter
         private MenuPage[] pages;
         private int currentPage;
 
-        private Rect windowRect =
-            new Rect(100, 100, 620, 680);
-
         private bool previousY;
         private bool previousA;
         private bool previousB;
 
-        private GUIStyle titleStyle;
-        private GUIStyle versionStyle;
-        private GUIStyle pageStyle;
-        private GUIStyle buttonStyle;
-        private GUIStyle tabStyle;
-        private GUIStyle statusStyle;
-
-        private Texture2D cyanTexture;
-        private Texture2D darkTexture;
+        private Texture2D backgroundTexture;
         private Texture2D panelTexture;
-
-        private float animationTime;
 
         private void Start()
         {
             CreatePages();
             CreateTextures();
-            CreateStyles();
         }
+
+        // =========================
+        // PAGES
+        // =========================
 
         private void CreatePages()
         {
@@ -69,90 +60,50 @@ namespace LuikiBetter
             };
         }
 
+        // =========================
+        // TEXTURES
+        // =========================
+
         private void CreateTextures()
         {
-            cyanTexture = MakeTexture(
-                new Color(0f, 0.85f, 1f)
-            );
+            backgroundTexture =
+                MakeTexture(
+                    LuikiGUI.Dark
+                );
 
-            darkTexture = MakeTexture(
-                new Color(0.025f, 0.035f, 0.055f)
-            );
-
-            panelTexture = MakeTexture(
-                new Color(0.055f, 0.075f, 0.105f)
-            );
+            panelTexture =
+                MakeTexture(
+                    new Color(
+                        0.04f,
+                        0.065f,
+                        0.10f
+                    )
+                );
         }
 
-        private Texture2D MakeTexture(Color color)
+        private Texture2D MakeTexture(
+            Color color)
         {
             Texture2D texture =
                 new Texture2D(1, 1);
 
-            texture.SetPixel(0, 0, color);
+            texture.SetPixel(
+                0,
+                0,
+                color
+            );
+
             texture.Apply();
 
             return texture;
         }
 
-        private void CreateStyles()
-        {
-            titleStyle =
-                new GUIStyle(GUI.skin.label);
-
-            titleStyle.fontSize = 34;
-            titleStyle.alignment =
-                TextAnchor.MiddleCenter;
-            titleStyle.fontStyle =
-                FontStyle.Bold;
-
-            versionStyle =
-                new GUIStyle(GUI.skin.label);
-
-            versionStyle.fontSize = 14;
-            versionStyle.alignment =
-                TextAnchor.MiddleCenter;
-
-            pageStyle =
-                new GUIStyle(GUI.skin.label);
-
-            pageStyle.fontSize = 24;
-            pageStyle.alignment =
-                TextAnchor.MiddleCenter;
-            pageStyle.fontStyle =
-                FontStyle.Bold;
-
-            buttonStyle =
-                new GUIStyle(GUI.skin.button);
-
-            buttonStyle.fontSize = 18;
-            buttonStyle.alignment =
-                TextAnchor.MiddleCenter;
-            buttonStyle.fontStyle =
-                FontStyle.Bold;
-
-            tabStyle =
-                new GUIStyle(GUI.skin.button);
-
-            tabStyle.fontSize = 15;
-            tabStyle.alignment =
-                TextAnchor.MiddleCenter;
-            tabStyle.fontStyle =
-                FontStyle.Bold;
-
-            statusStyle =
-                new GUIStyle(GUI.skin.label);
-
-            statusStyle.fontSize = 13;
-            statusStyle.alignment =
-                TextAnchor.MiddleCenter;
-        }
+        // =========================
+        // UPDATE
+        // =========================
 
         private void Update()
         {
-            animationTime +=
-                Time.deltaTime;
-
             InputDevice left =
                 InputDevices.GetDeviceAtXRNode(
                     XRNode.LeftHand
@@ -163,7 +114,8 @@ namespace LuikiBetter
                     XRNode.RightHand
                 );
 
-            // Y = open menu
+            // Y = open/close menu
+
             if (left.TryGetFeatureValue(
                 CommonUsages.primaryButton,
                 out bool yPressed))
@@ -175,6 +127,7 @@ namespace LuikiBetter
             }
 
             // A = Ghost Monkey
+
             if (right.TryGetFeatureValue(
                 CommonUsages.primaryButton,
                 out bool aPressed))
@@ -186,6 +139,7 @@ namespace LuikiBetter
             }
 
             // B = Invisible Monkey
+
             if (right.TryGetFeatureValue(
                 CommonUsages.secondaryButton,
                 out bool bPressed))
@@ -200,76 +154,83 @@ namespace LuikiBetter
             Safety.Update();
         }
 
+        // =========================
+        // GUI
+        // =========================
+
         private void OnGUI()
         {
             if (!menuOpen)
                 return;
 
-            windowRect = GUI.Window(
-                999,
-                windowRect,
-                DrawMenu,
-                ""
-            );
+            LuikiGUI.MenuRect =
+                GUI.Window(
+                    999,
+                    LuikiGUI.MenuRect,
+                    DrawMenu,
+                    ""
+                );
         }
 
-        private void DrawMenu(int id)
+        // =========================
+        // MAIN MENU
+        // =========================
+
+        private void DrawMenu(
+            int windowID)
         {
             GUI.DrawTexture(
                 new Rect(
                     0,
                     0,
-                    windowRect.width,
-                    windowRect.height
+                    LuikiGUI.MenuRect.width,
+                    LuikiGUI.MenuRect.height
                 ),
-                darkTexture
+                backgroundTexture
             );
 
             GUILayout.BeginVertical();
 
-            GUILayout.Space(12);
+            GUILayout.Space(20);
 
-            float pulse =
-                0.75f +
-                Mathf.Sin(
-                    animationTime * 3f
-                ) * 0.25f;
-
-            Color oldColor = GUI.color;
+            // Header
 
             GUI.color =
-                new Color(
-                    0.3f,
-                    pulse,
-                    1f
-                );
+                LuikiGUI.Cyan;
 
             GUILayout.Label(
                 "LUIKI BETTER",
-                titleStyle,
-                GUILayout.Height(45)
+                LuikiGUI.PageStyle(),
+                GUILayout.Height(55)
             );
 
-            GUI.color = oldColor;
+            GUI.color =
+                Color.white;
 
             GUILayout.Label(
                 "V1.0",
-                versionStyle,
-                GUILayout.Height(22)
+                LuikiGUI.SmallStyle(),
+                GUILayout.Height(25)
             );
 
-            GUILayout.Space(12);
+            GUILayout.Space(20);
+
+            // Tabs
 
             DrawTabs();
 
-            GUILayout.Space(15);
+            GUILayout.Space(20);
+
+            // Content
 
             if (settingsOpen)
                 DrawSettings();
             else
-                DrawPage();
+                DrawCurrentPage();
 
             GUILayout.FlexibleSpace();
+
+            // Footer
 
             DrawFooter();
 
@@ -277,6 +238,10 @@ namespace LuikiBetter
 
             GUI.DragWindow();
         }
+
+        // =========================
+        // TABS
+        // =========================
 
         private void DrawTabs()
         {
@@ -286,52 +251,62 @@ namespace LuikiBetter
                  i < pages.Length;
                  i++)
             {
+                Color old =
+                    GUI.backgroundColor;
+
                 GUI.backgroundColor =
                     i == currentPage
-                        ? Color.cyan
-                        : new Color(
-                            0.12f,
-                            0.15f,
-                            0.20f
-                        );
+                        ? LuikiGUI.Cyan
+                        : LuikiGUI.Button;
 
                 if (GUILayout.Button(
                     pages[i].Name,
-                    tabStyle,
-                    GUILayout.Height(38)))
+                    LuikiGUI.ButtonStyle(),
+                    GUILayout.Height(55)))
                 {
                     currentPage = i;
                     settingsOpen = false;
                 }
-            }
 
-            GUI.backgroundColor =
-                Color.white;
+                GUI.backgroundColor =
+                    old;
+            }
 
             GUILayout.EndHorizontal();
         }
 
-        private void DrawPage()
+        // =========================
+        // CURRENT PAGE
+        // =========================
+
+        private void DrawCurrentPage()
         {
             MenuPage page =
                 pages[currentPage];
 
+            GUILayout.Space(10);
+
             GUILayout.Label(
                 page.Name.ToUpper(),
-                pageStyle,
-                GUILayout.Height(40)
+                LuikiGUI.PageStyle(),
+                GUILayout.Height(45)
             );
 
-            GUILayout.Space(10);
+            GUILayout.Space(15);
 
             foreach (string mod in page.Mods)
             {
-                DrawModButton(mod);
-                GUILayout.Space(7);
+                DrawMod(mod);
+
+                GUILayout.Space(8);
             }
         }
 
-        private void DrawModButton(
+        // =========================
+        // MOD BUTTON
+        // =========================
+
+        private void DrawMod(
             string mod)
         {
             string text = mod;
@@ -381,76 +356,47 @@ namespace LuikiBetter
                         : "OFF");
             }
 
-            GUI.backgroundColor =
-                new Color(
-                    0.08f,
-                    0.12f,
-                    0.17f
-                );
-
-            if (GUILayout.Button(
+            if (LuikiGUI.Button(
                 text,
-                buttonStyle,
-                GUILayout.Height(48)))
+                58))
             {
                 HandleMod(mod);
             }
-
-            GUI.backgroundColor =
-                Color.white;
         }
+
+        // =========================
+        // SETTINGS
+        // =========================
 
         private void DrawSettings()
         {
-            GUILayout.Space(20);
-
-            GUILayout.Label(
-                "SETTINGS",
-                pageStyle,
-                GUILayout.Height(40)
+            LuikiGUI.DrawSettings(
+                () =>
+                {
+                    settingsOpen = false;
+                }
             );
-
-            GUILayout.Space(20);
-
-            GUILayout.Label(
-                "Luiki Better",
-                buttonStyle,
-                GUILayout.Height(45)
-            );
-
-            GUILayout.Label(
-                "Version: V1.0",
-                versionStyle
-            );
-
-            GUILayout.Space(15);
-
-            if (GUILayout.Button(
-                "BACK TO MENU",
-                buttonStyle,
-                GUILayout.Height(45)))
-            {
-                settingsOpen = false;
-            }
         }
+
+        // =========================
+        // FOOTER
+        // =========================
 
         private void DrawFooter()
         {
             GUILayout.BeginHorizontal();
 
-            if (GUILayout.Button(
+            if (LuikiGUI.Button(
                 "SETTINGS",
-                buttonStyle,
-                GUILayout.Height(40)))
+                50))
             {
                 settingsOpen =
                     !settingsOpen;
             }
 
-            if (GUILayout.Button(
+            if (LuikiGUI.Button(
                 "EXIT",
-                buttonStyle,
-                GUILayout.Height(40)))
+                50))
             {
                 menuOpen = false;
                 settingsOpen = false;
@@ -458,14 +404,15 @@ namespace LuikiBetter
 
             GUILayout.EndHorizontal();
 
-            GUILayout.Label(
-                "PAGE " +
-                (currentPage + 1) +
-                " / " +
-                pages.Length,
-                statusStyle
+            LuikiGUI.DrawPageIndicator(
+                currentPage,
+                pages.Length
             );
         }
+
+        // =========================
+        // MOD HANDLER
+        // =========================
 
         private void HandleMod(
             string mod)
@@ -522,6 +469,7 @@ namespace LuikiBetter
             }
         }
     }
+}
 }
     }
 }
