@@ -8,17 +8,15 @@ namespace LuikiBetter
     public class LuikiBetterMenu : MonoBehaviour
     {
         private bool menuOpen;
-        private bool settingsOpen;
+        private int currentPage;
 
         private MenuPage[] pages;
-        private int currentPage;
 
         private bool previousY;
         private bool previousA;
         private bool previousB;
 
         private Texture2D backgroundTexture;
-        private Texture2D panelTexture;
 
         private void Start()
         {
@@ -27,7 +25,7 @@ namespace LuikiBetter
         }
 
         // =========================
-        // PAGES
+        // V1.0 PAGES
         // =========================
 
         private void CreatePages()
@@ -43,25 +41,25 @@ namespace LuikiBetter
                 ),
 
                 new MenuPage(
+                    "Safety",
+                    "Anti-Kick",
+                    "Anti-Ban",
+                    "Accept ToS"
+                ),
+
+                new MenuPage(
                     "Overpowered",
                     "Kick Gun",
                     "Kick All",
                     "Crash Gun",
                     "Crash All",
                     "Reverse Card"
-                ),
-
-                new MenuPage(
-                    "Safety",
-                    "Anti-Kick",
-                    "Anti-Ban",
-                    "Accept ToS"
                 )
             };
         }
 
         // =========================
-        // TEXTURES
+        // BACKGROUND
         // =========================
 
         private void CreateTextures()
@@ -69,15 +67,6 @@ namespace LuikiBetter
             backgroundTexture =
                 MakeTexture(
                     LuikiGUI.Dark
-                );
-
-            panelTexture =
-                MakeTexture(
-                    new Color(
-                        0.04f,
-                        0.065f,
-                        0.10f
-                    )
                 );
         }
 
@@ -99,7 +88,7 @@ namespace LuikiBetter
         }
 
         // =========================
-        // UPDATE
+        // CONTROLLER
         // =========================
 
         private void Update()
@@ -114,7 +103,7 @@ namespace LuikiBetter
                     XRNode.RightHand
                 );
 
-            // Y = open/close menu
+            // Y = OPEN / CLOSE MENU
 
             if (left.TryGetFeatureValue(
                 CommonUsages.primaryButton,
@@ -126,28 +115,28 @@ namespace LuikiBetter
                 previousY = yPressed;
             }
 
-            // A = Ghost Monkey
-
-            if (right.TryGetFeatureValue(
-                CommonUsages.primaryButton,
-                out bool aPressed))
-            {
-                if (aPressed && !previousA)
-                    Movement.ToggleGhostMonkey();
-
-                previousA = aPressed;
-            }
-
-            // B = Invisible Monkey
+            // B = GHOST MONKEY ONLY
 
             if (right.TryGetFeatureValue(
                 CommonUsages.secondaryButton,
                 out bool bPressed))
             {
                 if (bPressed && !previousB)
-                    Movement.ToggleInvisibleMonkey();
+                    Movement.ToggleGhostMonkey();
 
                 previousB = bPressed;
+            }
+
+            // A = INVISIBLE MONKEY ONLY
+
+            if (right.TryGetFeatureValue(
+                CommonUsages.primaryButton,
+                out bool aPressed))
+            {
+                if (aPressed && !previousA)
+                    Movement.ToggleInvisibleMonkey();
+
+                previousA = aPressed;
             }
 
             Movement.Update();
@@ -193,8 +182,6 @@ namespace LuikiBetter
 
             GUILayout.Space(20);
 
-            // Header
-
             GUI.color =
                 LuikiGUI.Cyan;
 
@@ -215,22 +202,13 @@ namespace LuikiBetter
 
             GUILayout.Space(20);
 
-            // Tabs
-
-            DrawTabs();
+            DrawPageButtons();
 
             GUILayout.Space(20);
 
-            // Content
-
-            if (settingsOpen)
-                DrawSettings();
-            else
-                DrawCurrentPage();
+            DrawCurrentPage();
 
             GUILayout.FlexibleSpace();
-
-            // Footer
 
             DrawFooter();
 
@@ -240,10 +218,10 @@ namespace LuikiBetter
         }
 
         // =========================
-        // TABS
+        // PAGE BUTTONS
         // =========================
 
-        private void DrawTabs()
+        private void DrawPageButtons()
         {
             GUILayout.BeginHorizontal();
 
@@ -251,7 +229,7 @@ namespace LuikiBetter
                  i < pages.Length;
                  i++)
             {
-                Color old =
+                Color oldColor =
                     GUI.backgroundColor;
 
                 GUI.backgroundColor =
@@ -265,11 +243,10 @@ namespace LuikiBetter
                     GUILayout.Height(55)))
                 {
                     currentPage = i;
-                    settingsOpen = false;
                 }
 
                 GUI.backgroundColor =
-                    old;
+                    oldColor;
             }
 
             GUILayout.EndHorizontal();
@@ -284,8 +261,6 @@ namespace LuikiBetter
             MenuPage page =
                 pages[currentPage];
 
-            GUILayout.Space(10);
-
             GUILayout.Label(
                 page.Name.ToUpper(),
                 LuikiGUI.PageStyle(),
@@ -296,65 +271,21 @@ namespace LuikiBetter
 
             foreach (string mod in page.Mods)
             {
-                DrawMod(mod);
+                DrawModButton(mod);
 
                 GUILayout.Space(8);
             }
         }
 
         // =========================
-        // MOD BUTTON
+        // MOD BUTTONS
         // =========================
 
-        private void DrawMod(
+        private void DrawModButton(
             string mod)
         {
-            string text = mod;
-
-            if (mod == "Platforms")
-            {
-                text =
-                    "Platforms  " +
-                    (Movement.PlatformsEnabled
-                        ? "ON"
-                        : "OFF");
-            }
-
-            if (mod == "Ghost Monkey")
-            {
-                text =
-                    "Ghost Monkey  " +
-                    (Movement.GhostMonkeyEnabled
-                        ? "ON"
-                        : "OFF");
-            }
-
-            if (mod == "Invisible Monkey")
-            {
-                text =
-                    "Invisible Monkey  " +
-                    (Movement.InvisibleMonkeyEnabled
-                        ? "ON"
-                        : "OFF");
-            }
-
-            if (mod == "Anti-Kick")
-            {
-                text =
-                    "Anti-Kick  " +
-                    (Safety.AntiKickEnabled
-                        ? "ON"
-                        : "OFF");
-            }
-
-            if (mod == "Anti-Ban")
-            {
-                text =
-                    "Anti-Ban  " +
-                    (Safety.AntiBanEnabled
-                        ? "ON"
-                        : "OFF");
-            }
+            string text =
+                GetModText(mod);
 
             if (LuikiGUI.Button(
                 text,
@@ -364,54 +295,48 @@ namespace LuikiBetter
             }
         }
 
-        // =========================
-        // SETTINGS
-        // =========================
-
-        private void DrawSettings()
+        private string GetModText(
+            string mod)
         {
-            LuikiGUI.DrawSettings(
-                () =>
-                {
-                    settingsOpen = false;
-                }
-            );
+            switch (mod)
+            {
+                case "Platforms":
+                    return "Platforms  " +
+                        (Movement.PlatformsEnabled
+                            ? "ON"
+                            : "OFF");
+
+                case "Ghost Monkey":
+                    return "Ghost Monkey  " +
+                        (Movement.GhostMonkeyEnabled
+                            ? "ON"
+                            : "OFF");
+
+                case "Invisible Monkey":
+                    return "Invisible Monkey  " +
+                        (Movement.InvisibleMonkeyEnabled
+                            ? "ON"
+                            : "OFF");
+
+                case "Anti-Kick":
+                    return "Anti-Kick  " +
+                        (Safety.AntiKickEnabled
+                            ? "ON"
+                            : "OFF");
+
+                case "Anti-Ban":
+                    return "Anti-Ban  " +
+                        (Safety.AntiBanEnabled
+                            ? "ON"
+                            : "OFF");
+
+                default:
+                    return mod;
+            }
         }
 
         // =========================
-        // FOOTER
-        // =========================
-
-        private void DrawFooter()
-        {
-            GUILayout.BeginHorizontal();
-
-            if (LuikiGUI.Button(
-                "SETTINGS",
-                50))
-            {
-                settingsOpen =
-                    !settingsOpen;
-            }
-
-            if (LuikiGUI.Button(
-                "EXIT",
-                50))
-            {
-                menuOpen = false;
-                settingsOpen = false;
-            }
-
-            GUILayout.EndHorizontal();
-
-            LuikiGUI.DrawPageIndicator(
-                currentPage,
-                pages.Length
-            );
-        }
-
-        // =========================
-        // MOD HANDLER
+        // MOD ACTIONS
         // =========================
 
         private void HandleMod(
@@ -467,6 +392,25 @@ namespace LuikiBetter
                     Overpowered.ReverseCard();
                     break;
             }
+        }
+
+        // =========================
+        // FOOTER
+        // =========================
+
+        private void DrawFooter()
+        {
+            if (LuikiGUI.Button(
+                "EXIT",
+                50))
+            {
+                menuOpen = false;
+            }
+
+            LuikiGUI.DrawPageIndicator(
+                currentPage,
+                pages.Length
+            );
         }
     }
 }
